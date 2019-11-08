@@ -1,0 +1,41 @@
+{
+  "name": "react-native-fitness-watcher",
+  "title": "React Native Fitness Watcher",
+  "version": "1.0.0",
+  "description": "TODO",
+  "main": "index.js",
+  "scripts": {
+    "emu": "emulator -avd Pixel_2_XL_API_26",
+    "clean": "cd android && ./gradlew clean",
+    "android": "react-native run-android",
+    "android-release": "react-native run-android --variant=release",
+    "ios": "react-native run-ios",
+    "ios-release": "react-native run-ios --configuration Release",
+    "start": "react-native start",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "xcode": "xed -b ios"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/github_account/react-native-fitness-watcher.git",
+    "baseUrl": "https://github.com/github_account/react-native-fitness-watcher"
+  },
+  "keywords": [
+    "react-native"
+  ],
+  "author": {
+    "name": "Goh Horng Bor",
+    "email": "horngbor.goh@digital-forge.net"
+  },
+  "license": "MIT",
+  "licenseFilename": "LICENSE",
+  "readmeFilename": "README.md",
+  "peerDependencies": {
+    "react": "^16.8.1",
+    "react-native": ">=0.59.0-rc.0 <1.0.x"
+  },
+  "devDependencies": {
+    "react": "^16.8.3",
+    "react-native": "^0.59.10"
+  }
+}
