@@ -4,8 +4,7 @@
 
 `$ npm install react-native-fitness-watcher --save`
 
-### Mostly automatic installation
-
+### Mostly automatic installation (Skip this step for React Native 0.60 and above.)
 `$ react-native link react-native-fitness-watcher`
 
 ### Manual installation
@@ -18,7 +17,7 @@
 3. In XCode, in the project navigator, select your project. Add `libFitnessWatcher.a` to your project's `Build Phases` ➜ `Link Binary With Libraries`
 4. Run your project (`Cmd+R`)<
 
-#### Android
+#### Android (Skip this step for React Native 0.60 and above.)
 
 1. Open up `android/app/src/main/java/[...]/MainApplication.java`
   - Add `import com.reactlibrary.FitnessWatcherPackage;` to the imports at the top of the file
