@@ -31,41 +31,48 @@ public class FitnessWatcherModule extends ReactContextBaseJavaModule {
         mBLEServiceOperate = BLEServiceOperate.getInstance(reactContext);
         isSupportBle4_0 = mBLEServiceOperate.isSupportBle4_0();
 
-        if(mBLEServiceOperate != null) {
-            if(isSupportBle4_0) {
-
-            }
-        }
-
         callback.invoke("Received numberArgument: " + numberArgument + " stringArgument: " + stringArgument + "mBLEService" + isSupportBle4_0);
     }
 
     @ReactMethod
     public void initializeFitnessWatcher(String appName, ReadableMap options, Callback callback) {
+
+        //initialize BLE service instance
         mBLEServiceOperate = BLEServiceOperate.getInstance(reactContext);
         isSupportBle4_0 = mBLEServiceOperate.isSupportBle4_0();
 
+        //check if device supports BLE 4.0, if not disable the BLE feature.
         if(mBLEServiceOperate != null) {
             if(isSupportBle4_0) {
+                //set Device Scan Listener
+
+                //check if BLE is enabled, if not, turn on Bluetooth
 
             }
         }
 
-
-//        FirebaseOptions.Builder builder = new FirebaseOptions.Builder();
-//
-//        builder.setApiKey(options.getString("apiKey"));
-//        builder.setApplicationId(options.getString("appId"));
-//        builder.setProjectId(options.getString("projectId"));
-//        builder.setDatabaseUrl(options.getString("databaseURL"));
-//        builder.setStorageBucket(options.getString("storageBucket"));
-//        builder.setGcmSenderId(options.getString("messagingSenderId"));
-//        // todo firebase sdk has no client id setter
-//
-//        FirebaseApp.initializeApp(getReactApplicationContext(), builder.build(), appName);
-//
 //        WritableMap response = Arguments.createMap();
 //        response.putString("result", "success");
 //        callback.invoke(null, response);
+    }
+
+    @ReactMethod
+    public void getListOfDevices(Callback callback) {
+
+        //check if BLE is enabled, if not, turn on Bluetooth
+
+        //scan for list of devices
+
+        //stop scanning for list of devices
+
+        //return list of devices
+
+    }
+
+    @ReactMethod
+    public void connecToBLEDevice(Callback callback) {
+        //boolean isConnectSuccessfully = mBLEServiceOperate.connect(deviceAddress)
+
+        //callback for result
     }
 }
