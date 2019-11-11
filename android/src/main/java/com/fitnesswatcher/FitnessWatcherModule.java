@@ -1,7 +1,5 @@
 package com.fitnesswatcher;
 
-import android.content.Context;
-
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -13,7 +11,6 @@ import com.yc.pedometer.sdk.BLEServiceOperate;
 public class FitnessWatcherModule extends ReactContextBaseJavaModule {
 
     private final ReactApplicationContext reactContext;
-    private Context mContext;
 
     private BLEServiceOperate mBLEServiceOperate;
     private boolean isSupportBle4_0;
@@ -31,7 +28,7 @@ public class FitnessWatcherModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void sampleMethod(String stringArgument, int numberArgument, Callback callback) {
         // TODO: Implement some actually useful functionality
-        mBLEServiceOperate = BLEServiceOperate.getInstance(mContext);
+        mBLEServiceOperate = BLEServiceOperate.getInstance(reactContext);
         isSupportBle4_0 = mBLEServiceOperate.isSupportBle4_0();
 
         if(mBLEServiceOperate != null) {
@@ -45,7 +42,7 @@ public class FitnessWatcherModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void initializeFitnessWatcher(String appName, ReadableMap options, Callback callback) {
-        mBLEServiceOperate = BLEServiceOperate.getInstance(mContext);
+        mBLEServiceOperate = BLEServiceOperate.getInstance(reactContext);
         isSupportBle4_0 = mBLEServiceOperate.isSupportBle4_0();
 
         if(mBLEServiceOperate != null) {
