@@ -38,5 +38,15 @@
 import FitnessWatcher from 'react-native-fitness-watcher';
 
 // TODO: What to do with the module?
-FitnessWatcher;
+//Test the native linking
+FitnessWatcher.sampleMethod('ONE', 123123, result => console.log(result));
+
+//Initialize the Fitness Watcher
+FitnessWatcher.initializeFitnessWatcher()
+
+//Get list of devices
+FitnessWatcher.getListOfDevices((callbackResult => (return callbackResult)))
+
+//Connect to device with deviceAddress
+FitnessWatcher.connectToBLEDevice(deviceAddress: string, (callbackResult => (return callbackResult)))
 ```

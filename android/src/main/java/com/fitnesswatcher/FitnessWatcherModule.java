@@ -35,7 +35,7 @@ public class FitnessWatcherModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void initializeFitnessWatcher(String appName, ReadableMap options, Callback callback) {
+    public void initializeFitnessWatcher(Callback callback) {
 
         //initialize BLE service instance
         mBLEServiceOperate = BLEServiceOperate.getInstance(reactContext);
@@ -50,10 +50,6 @@ public class FitnessWatcherModule extends ReactContextBaseJavaModule {
 
             }
         }
-
-//        WritableMap response = Arguments.createMap();
-//        response.putString("result", "success");
-//        callback.invoke(null, response);
     }
 
     @ReactMethod
@@ -70,7 +66,7 @@ public class FitnessWatcherModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void connecToBLEDevice(Callback callback) {
+    public void connectToBLEDevice(String deviceAddress, Callback callback) {
         //boolean isConnectSuccessfully = mBLEServiceOperate.connect(deviceAddress)
 
         //callback for result
