@@ -37,6 +37,10 @@
 ```javascript
 import FitnessWatcher from 'react-native-fitness-watcher';
 
+IMPORTANT: YOU MUST ALSO ENSURE THAT THE PROPER PERMISSIONS MUST BE GRANTED FOR THE MODULE TO WORK.
+FOR ANDROID PERMISSIONS, ACCESS_COARSE_LOCATION ACCESS_FINE_LOCATION
+Refer to https://facebook.github.io/react-native/docs/permissionsandroid on how to prompt user for permissions.
+
 // TODO: What to do with the module?
 //Test the native linking
 FitnessWatcher.sampleMethod('ONE', 123123, result => console.log(result));
@@ -44,7 +48,7 @@ FitnessWatcher.sampleMethod('ONE', 123123, result => console.log(result));
 //Initialize the Fitness Watcher
 FitnessWatcher.initializeFitnessWatcher()
 
-//Get list of devices
+//Get list of devices (The device's name is most likely L8-R7)
 FitnessWatcher.getListOfDevices((callbackResult => (return callbackResult)))
 
 //Connect to device with deviceAddress
