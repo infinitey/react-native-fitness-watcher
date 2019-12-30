@@ -1,6 +1,6 @@
 # react-native-fitness-watcher
 
-NOTE: This is a package for custom fitness watch and cannot be use for other BLE devices.
+NOTE: This is a package for custom fitness watch and cannot be use for any other BLE devices.
 
 ## Getting started
 
