@@ -2,7 +2,9 @@ package com.fitnesswatcher;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -32,18 +34,21 @@ import com.yc.pedometer.sdk.DeviceScanInterfacer;
 import com.yc.pedometer.sdk.ICallback;
 import com.yc.pedometer.sdk.ICallbackStatus;
 import com.yc.pedometer.sdk.OnServerCallbackListener;
+import com.yc.pedometer.sdk.ServiceStatusCallback;
+import com.yc.pedometer.sdk.UTESQLOperate;
 import com.yc.pedometer.sdk.WriteCommandToBLE;
 import com.yc.pedometer.update.Updates;
 import com.yc.pedometer.utils.GBUtils;
 import com.yc.pedometer.utils.GlobalVariable;
 import com.yc.pedometer.utils.MultipleSportsModesUtils;
+import no.nordicsemi.android.dfu.DfuServiceInitiator;
 
 import java.util.ArrayList;
 
 import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
 
 
-class FitnessWatcherModule extends ReactContextBaseJavaModule implements DeviceScanInterfacer, ICallback, OnServerCallbackListener {
+class FitnessWatcherModule extends ReactContextBaseJavaModule implements DeviceScanInterfacer, ICallback, OnServerCallbackListener, ServiceStatusCallback {
 
     private final ReactApplicationContext reactContext;
 
@@ -96,6 +101,13 @@ class FitnessWatcherModule extends ReactContextBaseJavaModule implements DeviceS
     private WriteCommandToBLE mWriteCommand;
     private Updates mUpdates;
     private SharedPreferences sp;
+    private Handler mHandler;
+    private UTESQLOperate mySQLOperate;
+
+    private String mDeviceName;
+    private String mDeviceAddress;
+    public static final String EXTRAS_DEVICE_NAME = "device_name";
+    public static final String EXTRAS_DEVICE_ADDRESS = "device_address";
 
     public FitnessWatcherModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -110,14 +122,29 @@ class FitnessWatcherModule extends ReactContextBaseJavaModule implements DeviceS
 
     @ReactMethod
     public void initializeFitnessWatcher(final Callback callback) {
+        mHandler = initializeHandler();
 
         //initialize BLE service instance
-        mHandler = new Handler();
+        sp = reactContext.getSharedPreferences(GlobalVariable.SettingSP, 0);
+        mySQLOperate = UTESQLOperate.getInstance(reactContext);
+
         mBLEServiceOperate = BLEServiceOperate.getInstance(reactContext);
+        Log.d(TAG, "setServiceStatusCallback前 mBLEServiceOperate =" + mBLEServiceOperate);
+
+        mBLEServiceOperate.setServiceStatusCallback(this);
+        Log.d(TAG, "setServiceStatusCallback后 mBLEServiceOperate =" + mBLEServiceOperate);
+
         isSupportBle4_0 = mBLEServiceOperate.isSupportBle4_0();
+
 
         //check if device supports BLE 4.0, if not disable the BLE feature.
         if(mBLEServiceOperate != null) {
+            //mBluetoothLeService = mBLEServiceOperate.getBleService();
+            //mBluetoothLeService.setICallback(this);
+
+            //mBluetoothLeService.setRateCalibrationListener(this);//设置心率校准监听
+            //mBluetoothLeService.setTurnWristCalibrationListener(this);//设置翻腕校准监听
+
             if(isSupportBle4_0) {
                 //check if BLE is enabled, if not, turn on Bluetooth
                if(mBLEServiceOperate.isBleEnabled()) {
@@ -127,6 +154,9 @@ class FitnessWatcherModule extends ReactContextBaseJavaModule implements DeviceS
 
                    //scan for list of devices
                    scanLeDevice(true);
+
+                   //DfuServiceInitiator.createDfuNotificationChannel(reactContext);
+
                    callback.invoke("800", "Initialisation is successful." );
 
                } else {
@@ -138,6 +168,8 @@ class FitnessWatcherModule extends ReactContextBaseJavaModule implements DeviceS
         } else {
             callback.invoke("700", "Failed to create service instance." );
         }
+
+
     }
 
     @ReactMethod
@@ -171,7 +203,10 @@ class FitnessWatcherModule extends ReactContextBaseJavaModule implements DeviceS
         sp = reactContext.getSharedPreferences(GlobalVariable.SettingSP, 0);
         mWriteCommand = WriteCommandToBLE.getInstance(reactContext);
         mUpdates = Updates.getInstance(reactContext);
-        mUpdates.setHandler(mHandler);
+
+
+        mUpdates.setHandler(mHandler);// 获取升级操作信息
+
         mUpdates.registerBroadcastReceiver();
         mUpdates.setOnServerCallbackListener(this);
 
@@ -179,11 +214,56 @@ class FitnessWatcherModule extends ReactContextBaseJavaModule implements DeviceS
 
         CURRENT_STATUS = CONNECTING;
 
-        //upDateTodaySwimData();
-        //upDateTodaySkipData();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {//NRF升级用到
+            DfuServiceInitiator.createDfuNotificationChannel(reactContext);
+        }
 
         //callback for result
-        callback.invoke("Is successfully connect? "+ isConnectSuccessfully);
+        callback.invoke("Is successfully connect? "+ isConnectSuccessfully + " with device: " + deviceAddress);
+    }
+
+    private Handler initializeHandler () {
+        return new Handler() {
+            public void handleMessage(Message msg) {
+                switch (msg.what) {
+                    case DISCONNECT_MSG:
+                        //connect_status.setText(getString(R.string.disconnect));
+                        CURRENT_STATUS = DISCONNECTED;
+                        //Toast.makeText(mContext, "disconnect or connect falie", Toast.LENGTH_SHORT).show();
+
+                        String lastConnectAddr0 = sp.getString(
+                                GlobalVariable.LAST_CONNECT_DEVICE_ADDRESS_SP,
+                                "00:00:00:00:00:00");
+                        boolean connectResute0 = mBLEServiceOperate
+                                .connect(lastConnectAddr0);
+                        Log.i(TAG, "connectResute0=" + connectResute0);
+
+                        break;
+                    case CONNECTED_MSG:
+                        //connect_status.setText(getString(R.string.connected));
+                        mBluetoothLeService.setRssiHandler(mHandler);
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                while (!Thread.interrupted()) {
+                                    try {
+                                        Thread.sleep(1000);
+                                    } catch (InterruptedException e) {
+                                        // TODO Auto-generated catch block
+                                        e.printStackTrace();
+                                    }
+                                    if (mBluetoothLeService != null) {
+                                        mBluetoothLeService.readRssi();
+                                    }
+                                }
+                            }
+                        }).start();
+                        CURRENT_STATUS = CONNECTED;
+                        //Toast.makeText(mContext, "connected", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+            }
+        };
     }
 
     private void scanLeDevice(final boolean enable) {
@@ -286,47 +366,18 @@ class FitnessWatcherModule extends ReactContextBaseJavaModule implements DeviceS
         });
     }
 
-    private Handler mHandler = new Handler() {
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case DISCONNECT_MSG:
-                    //connect_status.setText(getString(R.string.disconnect));
-                    CURRENT_STATUS = DISCONNECTED;
-                    //Toast.makeText(mContext, "disconnect or connect falie", Toast.LENGTH_SHORT).show();
-
-                    String lastConnectAddr0 = sp.getString(
-                            GlobalVariable.LAST_CONNECT_DEVICE_ADDRESS_SP,
-                            "00:00:00:00:00:00");
-                    boolean connectResute0 = mBLEServiceOperate
-                            .connect(lastConnectAddr0);
-                    Log.i(TAG, "connectResute0=" + connectResute0);
-
-                    break;
-                case CONNECTED_MSG:
-                    //connect_status.setText(getString(R.string.connected));
-                    mBluetoothLeService.setRssiHandler(mHandler);
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            while (!Thread.interrupted()) {
-                                try {
-                                    Thread.sleep(1000);
-                                } catch (InterruptedException e) {
-                                    // TODO Auto-generated catch block
-                                    e.printStackTrace();
-                                }
-                                if (mBluetoothLeService != null) {
-                                    mBluetoothLeService.readRssi();
-                                }
-                            }
-                        }
-                    }).start();
-                    CURRENT_STATUS = CONNECTED;
-                    //Toast.makeText(mContext, "connected", Toast.LENGTH_SHORT).show();
-                    break;
+    @Override
+    public void OnServiceStatuslt(int status) {
+        if (status == ICallbackStatus.BLE_SERVICE_START_OK) {
+            Log.d(TAG, "OnServiceStatuslt mBluetoothLeService11 ="+mBluetoothLeService);
+            if (mBluetoothLeService == null) {
+                mBluetoothLeService = mBLEServiceOperate.getBleService();
+                mBluetoothLeService.setICallback(this);
+                Log.d(TAG, "OnServiceStatuslt mBluetoothLeService22 ="+mBluetoothLeService);
             }
         }
-    };
+    }
+
 
     @Override
     public void OnResult(boolean result, int status) {
@@ -740,7 +791,6 @@ class FitnessWatcherModule extends ReactContextBaseJavaModule implements DeviceS
     @Override
     public void onSportsTimeCallback(boolean result, String calendar,int sportsTime,
                                      int timeType) {
-
 //        if (timeType == GlobalVariable.SPORTS_TIME_TODAY) {
 //
 //            Log.d(TAG, "今天的运动时间  calendar =" + calendar + ",sportsTime ="

@@ -1,7 +1,7 @@
 {
   "name": "react-native-fitness-watcher",
   "title": "React Native Fitness Watcher",
-  "version": "0.0.8",
+  "version": "0.0.13",
   "description": "TODO",
   "main": "index.js",
   "scripts": {
